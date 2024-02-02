@@ -5,7 +5,8 @@
   - [Fundamentals](#axios-fundamentals)
 - [React query](#react-query)
   - [Client Data vs Server Data](#client-data-vs-server-data)
-  - [Typical Fetching Requirements](#typical-fetching-requirements) 
+  - [Typical Fetching Requirements](#typical-fetching-requirements)
+  - [Query Keys](#query-keys)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -53,6 +54,33 @@ A lot of React data fetching patterns and libraries take advantage of global sta
 This is exactly why React Query was created.
 
 
+### Query Keys
+- After React Query makes a query, **it places the result into a cache**. This makes it possible for the **same query data to be used multiple times** without making duplicate requests
+- Each item of the query key array **should cause the query to refetch when it changes**
+
+**Simple Query Keys:** </br>
+- The simplest form of a key is an array with constants values, which is great for **Generic List - index resources  or Non-hierarchical resources - that don't need extra parameters**
+```ts
+useQuery(["labels"], fetchLabels);
+useQuery(["users"], fetchUsers);
+useQuery(["issues"], fetchIssues);
+
+// A list of todos
+useQuery({ queryKey: ['todos'], ... })
+
+// Something else, whatever!
+useQuery({ queryKey: ['something', 'special'], ... })
+```
+
+**Array Keys with variables:** </br>
+- When a **query needs more information to uniquely describe its data**, you can use an array with a string and **any number of serializable objects to describe it: Hierarchical or nested resources, Queries with additional parameters**
+- we can use the different parts of our query key into separate items, like any parameters, IDs, indices - anything that our query depends on
+```ts
+useQuery(["users", 1], fetchUser);
+useQuery(["labels", labelName], fetchLabel);
+useQuery(["issues", {completed: false}], fetchIssues);
+```
+There's no one right way to write a query key:  **start generic, then go more specific**
 
 
 
