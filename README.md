@@ -7,7 +7,7 @@
   - [Client Data vs Server Data](#client-data-vs-server-data)
   - [Typical Fetching Requirements](#typical-fetching-requirements)
   - [Query Keys](#query-keys)
-  - [Parallel and Dependent,Deferred Queries](#parallel-and-dependent-queries)
+  - [Parallel and Dependent,Deferred Queries](#parallel-and-dependent-deferred-queries)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
