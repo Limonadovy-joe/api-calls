@@ -7,7 +7,7 @@
   - [Client Data vs Server Data](#client-data-vs-server-data)
   - [Typical Fetching Requirements](#typical-fetching-requirements)
   - [Query Keys](#query-keys)
-  - [Parallel and Dependent,Deferred Queries](#parallel-and-dependent-deferred-queries)
+  - [Parallel and Dependent, Deferred Queries](#parallel-and-dependent-deferred-queries)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -84,7 +84,7 @@ useQuery(["issues", {completed: false}], fetchIssues);
 There's no one right way to write a query key:  **start generic, then go more specific**
 
 
-### Parallel and Dependent,Deferred Queries
+### Parallel and Dependent, Deferred Queries
 - "Parallel" queries are queries that are executed in parallel, or at the same time so as to maximize fetching concurrency
 - If you can't decide whether to use multiple useQuery hooks or put all of your requests in the same query function: **think about whether you need a separate cache, loading, and error state for each query, or whether its better for them to be combined**
 - useQuries - It's especially useful when the number queries you are fetching can dynamically change.
