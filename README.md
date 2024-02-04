@@ -7,6 +7,7 @@
   - [Client Data vs Server Data](#client-data-vs-server-data)
   - [Typical Fetching Requirements](#typical-fetching-requirements)
   - [Query Keys](#query-keys)
+  - [Parallel and Dependent,Deferred Queries](#parallel-and-dependent-queries)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -81,6 +82,41 @@ useQuery(["labels", labelName], fetchLabel);
 useQuery(["issues", {completed: false}], fetchIssues);
 ```
 There's no one right way to write a query key:  **start generic, then go more specific**
+
+
+### Parallel and Dependent,Deferred Queries
+- "Parallel" queries are queries that are executed in parallel, or at the same time so as to maximize fetching concurrency
+- If you can't decide whether to use multiple useQuery hooks or put all of your requests in the same query function: **think about whether you need a separate cache, loading, and error state for each query, or whether its better for them to be combined**
+- useQuries - It's especially useful when the number queries you are fetching can dynamically change.
+
+**Dynamic Parallel Queries:** </br>
+- If the number of queries you need to execute is changing from render to render, you cannot use manual querying since that would violate the rules of hooks
+```tsx
+function App({ users }) {
+  const userQueries = useQueries({
+    queries: users.map((user) => {
+      return {
+        queryKey: ['user', user.id],
+        queryFn: () => fetchUserById(user.id),
+      }
+    }),
+  })
+}
+```
+
+**Dependent Queries:** </br>
+- Dependent (or serial) queries depend on previous ones to finish before they can execute. 
+- Dependent queries by definition **constitutes a form of request waterfall**, which hurts performance.
+- If you can, it's always better to **restructure the backend APIs** so that **both queries can be fetched in parallel**, though that might not always be practically feasible
+- In the example above, instead of first fetching **getUserByEmail** to be able to **getProjectsByUser**, introducing a new **getProjectsByUserEmail** query would flatten the waterfall.
+
+
+**Deffered queries:** </br>
+- One would be to use a **debounce function, which would wait a bit after the last keystroke before making the request.**
+- To keep things simple though, we'll just wrap our **input in a form and only make a new request when that form is submitted.**
+
+
+
 
 
 
