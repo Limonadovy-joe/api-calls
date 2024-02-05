@@ -8,6 +8,7 @@
   - [Typical Fetching Requirements](#typical-fetching-requirements)
   - [Query Keys](#query-keys)
   - [Parallel and Dependent, Deferred Queries](#parallel-and-dependent-deferred-queries)
+  - [Cache States And React Query DevTools](#cache-states-and-react-query-devTools)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -116,12 +117,39 @@ function App({ users }) {
 - To keep things simple though, we'll just wrap our **input in a form and only make a new request when that form is submitted.**
 
 
+### Cache States And React Query DevTools
+- remember, the purpose of React Query is to **keep track of our server state**. This is the state that lives remotely on the server and could change at any time
+- Once we have data in our cache, we can show that data to the user. **But what happens when data changes on the server?**
+- React Query will automatically refetch our data, but how does it know when to do that?
+- **idle** means the query doesn't need to be fetched, **fetching** means it is currently being fetched, and **paused** means the query tried to fetch, but was stopped for some reason - usually because the network is offline.
+- Note that the **fetching state** is different from the **loading state**. **A query only has the loading state the first time it loads and there's no data**, while the **fetching state is used by the query cache any time a query is refetched**, including the first time.**
+- the **cache entry** could be set to either **fresh, meaning the data on the server is unlikely to change soon**, or **stale, meaning the data on the client might already be out of date with the server**
+
+- **Finally, when every component that uses a query has unmounted**, the cache entry for **that query is marked as inactive**. The data is kept just in case the query is used again, but React Query might remove that entry from the cache if it isn't used for a while.
+
+**Stale vs Fresh Data:** </br>
+- If the query is stale, it'll get refetched.  
+```tsx
+const userQuery = useQuery(
+  ["user", username],
+  () =>
+    fetch(`https://api.github.com/users/${username}`)
+    .then(res => res.json()),
+  { staleTime: 1000 * 60 }
+);
+```
+- Once 60 seconds have passed since this query was last fetched, React Query will change its state to stale, which means it's eligible to be refetched once again.
+
+**Triggering a Refetch:** </br>
+- Of course, we already know React Query will fetch when the component first mounts or when the query key changes.
+- The second refetch trigger is when the user re-focuses on the browser window
+- The next refetch trigger is network reconnections.
+- And finally, there is an optional timed refetch trigger which we can configure. This is activated by setting the refetchInterval. This option is best when you have **frequently changing data** and want to always keep the cache up to date.
 
 
-
-
-
-
+**Clearing the cache:** </br>
+- By default, when a query has been inactive for more than **5 minutes**, React Query clears it out.
+- What happens when a query is removed from the cache? That query will behave as if the page had been reloaded completely. The user will see the loading state until the query resolves, and then they'll see the query data.
 
 
 
