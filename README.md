@@ -10,6 +10,7 @@
   - [Parallel and Dependent, Deferred Queries](#parallel-and-dependent-deferred-queries)
   - [Cache States And React Query DevTools](#cache-states-and-react-query-devTools)
   - [Error handling](#error-handling)
+  - [Using The Query Client](#using-the-query-client)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -162,6 +163,18 @@ const userQuery = useQuery(
 - There's just one more thing to cover about error handling: **What happens when a query fails but there is already data in the cache?**
 - If the data is still **in the cache**, **there's no reason we can't just keep showing the user that stale data** - it's better than only showing them an error. In fact, if we reorganize our component the right way, we can show both the error and the stale data.
 - The important thing to remember is that any data that's still in the cache is available, even if a later query had an error.
+
+
+### Using The Query Client
+- React Query puts control in your hands as the developer. You can configure the settings for each query directly, like staleTime, cacheTime, and retry, or you can use the default settings that come with React Query
+
+There's one more default you can configure on the Query Client - the default query function.
+
+**Imperative Query Fetching:** </br>
+- The useQuery hook is strictly declarative.
+- This is the behavior you most often want, but there might be a time when you want to **trigger a query imperatively**. For example, you might want to perform a search, grab the top result, and immediately trigger a navigation to the relevant page using React Router's navigate function without displaying results.
+
+
 
 
 
