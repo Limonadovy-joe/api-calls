@@ -9,6 +9,7 @@
   - [Query Keys](#query-keys)
   - [Parallel and Dependent, Deferred Queries](#parallel-and-dependent-deferred-queries)
   - [Cache States And React Query DevTools](#cache-states-and-react-query-devTools)
+  - [Error handling](#error-handling)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -151,6 +152,16 @@ const userQuery = useQuery(
 - By default, when a query has been inactive for more than **5 minutes**, React Query clears it out.
 - What happens when a query is removed from the cache? That query will behave as if the page had been reloaded completely. The user will see the loading state until the query resolves, and then they'll see the query data.
 
+
+### Error handling
+- One area this becomes a little tricky is for fetch requests. There are very few circumstances in which a fetch will reject. For example, an **HTTP 500 error, which is a server error, won't cause fetch to reject.** That means we have to take care of rejecting the promise ourselves.
+
+**Error retries:** </br>
+- This is actually the default behavior of React Query. When a query fails to refetch, **it will try three times to fetch it again,** with a delay between each attempt. If the query still fails, it will display the error to the user.
+- **This only applies to refetches**. If a query fails to fetch when it first loads, it will immediately display the error to the user without retrying.
+- There's just one more thing to cover about error handling: **What happens when a query fails but there is already data in the cache?**
+- If the data is still **in the cache**, **there's no reason we can't just keep showing the user that stale data** - it's better than only showing them an error. In fact, if we reorganize our component the right way, we can show both the error and the stale data.
+- The important thing to remember is that any data that's still in the cache is available, even if a later query had an error.
 
 
 
