@@ -12,6 +12,7 @@
   - [Error handling](#error-handling)
   - [Using The Query Client](#using-the-query-client)
   - [Manual Query Invalidation](#manual-query-invalidation)
+  - [Query Filters](#query-filters)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -190,9 +191,8 @@ However, there are times you might know for a fact that the data has changed and
 - **queryClient.invalidateQueries**, on the other hand, will only mark any fresh queries as stale, which automatically triggers a refetch. However, since React Query will never automatically refetch inactive queries, queryClient.invalidateQueries results in fewer queries refetching, which means less network traffic.
 
 
-
-
-
+### Query Filters
+- Remember, queries in the cache have several states they can be in. fresh is used for queries that likely won't change, stale is for queries that should be refetched soon, and fetching is for queries that are currently being fetched. Queries are also considered active if they have at least one subscriber, meaning a mounted component using the useQuery hook, and inactive if it has no subscribers.
 
 
 
