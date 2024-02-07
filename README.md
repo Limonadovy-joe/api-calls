@@ -11,6 +11,7 @@
   - [Cache States And React Query DevTools](#cache-states-and-react-query-devTools)
   - [Error handling](#error-handling)
   - [Using The Query Client](#using-the-query-client)
+  - [Manual Query Invalidation](#manual-query-invalidation)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -173,6 +174,29 @@ There's one more default you can configure on the Query Client - the default que
 **Imperative Query Fetching:** </br>
 - The useQuery hook is strictly declarative.
 - This is the behavior you most often want, but there might be a time when you want to **trigger a query imperatively**. For example, you might want to perform a search, grab the top result, and immediately trigger a navigation to the relevant page using React Router's navigate function without displaying results.
+
+
+### Manual Query Invalidation
+- React Query will only ever **refetch a query if it is stale**, but by default all queries are stale once their results come back. Queries with the **staleTime option will remain fresh until the staleTime has passed.**
+- There are three things which will cause React Query to automatically refetch any stale queries: Any time a component that has the useQuery hook mounts, whenever the user focuses the browser window, or whenever the network goes offline and then comes back online.
+
+However, there are times you might know for a fact that the data has changed and should be updated.
+
+**Invalidating Queries:** </br>
+- Most of the time, we just want to mark queries as stale and let React Query handle the refetching itself.
+
+**Refetching vs Invalidating:** </br>
+- **queryClient.refetchQueries** will force any queries that match the provided query key to refetch. This includes active, inactive, fresh, and stale queries. Yes, even those inactive queries that are just sitting in the cache not doing anything will be refetched.
+- **queryClient.invalidateQueries**, on the other hand, will only mark any fresh queries as stale, which automatically triggers a refetch. However, since React Query will never automatically refetch inactive queries, queryClient.invalidateQueries results in fewer queries refetching, which means less network traffic.
+
+
+
+
+
+
+
+
+
 
 
 
