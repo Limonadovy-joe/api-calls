@@ -83,12 +83,67 @@ useQuery({ queryKey: ['something', 'special'], ... })
 **Array Keys with variables:** </br>
 - When a **query needs more information to uniquely describe its data**, you can use an array with a string and **any number of serializable objects to describe it: Hierarchical or nested resources, Queries with additional parameters**
 - we can use the different parts of our query key into separate items, like any parameters, IDs, indices - anything that our query depends on
-```ts
+```tsx
 useQuery(["users", 1], fetchUser);
 useQuery(["labels", labelName], fetchLabel);
 useQuery(["issues", {completed: false}], fetchIssues);
 ```
 There's no one right way to write a query key:  **start generic, then go more specific**
+
+**EXAMPLE QUERY KEYS**:</br>
+```tsx
+async function fetchIssues(status) {
+  let url = new URL("https://ui.dev/api/courses/react-query/issues");
+  if (status) {
+    url.searchParams.append("status", status);
+  }
+  return fetch(url.toString()).then((res) => res.json());
+}
+
+function Issues() {
+  const [status, setStatus] = React.useState("");
+
+  const issuesQuery = useQuery(["issues", { status }], () =>
+    fetchIssues(status)
+  );
+  const issues = issuesQuery.data;
+  return (
+    <>
+      <h2>Issues{issuesQuery.isFetching ? "..." : ""}</h2>
+      <select
+        name="status"
+        value={status}
+        onChange={(event) => setStatus(event.target.value)}
+      >
+        <option value="">All issues</option>
+        <option value="backlog">Backlog</option>
+        <option value="todo">Todo</option>
+        <option value="inProgress">In Progress</option>
+        <option value="done">Done</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      {issuesQuery.isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul>
+          {issues.map((issue) => (
+            <li key={issue.id}>{issue.title}</li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+```
+
+**I didn't really understand why did you put the status as an object on qureyKey?**
+- In this case, the object seems to be redundant as we only have one filter. In a real-world application, you would have multiple filters, and grouping them into an object helps to preserve the query key by **"ignoring" the order of the filters**.
+- This query key ["issues", label, status] is different than this ["issues", status, label] but this **one ["issues", { label, status }] will be similar to this ["issues", { status, label }].**
+- in the future, if u get a requirement to only retrieve a single issue with its id. Then you would have to keep the key as ["issues", issueId]. Always have filters in an object. **The direct entries into the array are mostly the ones that would end up in the URL [as path params]** if one were to follow the **REST pattern**.
+
+
+
+
 
 
 ### Parallel and Dependent, Deferred Queries
