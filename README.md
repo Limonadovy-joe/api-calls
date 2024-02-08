@@ -13,6 +13,8 @@
   - [Using The Query Client](#using-the-query-client)
   - [Manual Query Invalidation](#manual-query-invalidation)
   - [Query Filters](#query-filters)
+  - [Query Cancellation](#query-cancellation)
+  - [Fetching States](#fetching-states)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -195,7 +197,24 @@ However, there are times you might know for a fact that the data has changed and
 - Remember, queries in the cache have several states they can be in. fresh is used for queries that likely won't change, stale is for queries that should be refetched soon, and fetching is for queries that are currently being fetched. Queries are also considered active if they have at least one subscriber, meaning a mounted component using the useQuery hook, and inactive if it has no subscribers.
 
 
+### Query Cancellation
+- Every network request and every computation has some kind of cost. Some users feel that cost more than others, especially folks with metered internet connections or low-powered devices. If you want your app to be respectful to users, you need to consider how to keep these costs as low as possible.
+- React Query only refetches stale data based on signals from the user. If you want to fetch data less frequently, you can set the query staleTime to keep data fresh for longer.
 
+- Most of the time React Query will cancel the query automatically. For example, **the component might unmount before the query resolves**, or the query key might change mid-request, making the data unusable.
+- And any work that the CPU doesn't have to do means a longer battery life for your mobile users.
+
+**When does a React Query signal a query to cancel?**
+- When the component is unmounted while a query is fetching
+- Manually, using the queryClient.cancelQueries
+- when the query key changes while a query is fetching
+
+
+### Fetching States
+- Nobody likes a loading spinner, but it's better than not knowing whether or not data is being loaded. That's why React Query gives us access to the **isLoading state so we can show our users if a query is being loaded for the first time.** After that, React Query stores the data in the cache so we don't have to show that loading state again.
+- React Query provides that refetching state with the **isFetching property which lets you show that the data is being refreshed in the background.**
+
+**The useIsFetching() hook returns a number indicating the number of queries across the entire app that are refetching.**
 
 
 
