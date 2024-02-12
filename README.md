@@ -15,6 +15,7 @@
   - [Query Filters](#query-filters)
   - [Query Cancellation](#query-cancellation)
   - [Fetching States](#fetching-states)
+  - [Prefetching queries](#prefetching-queries)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -270,6 +271,147 @@ However, there are times you might know for a fact that the data has changed and
 - React Query provides that refetching state with the **isFetching property which lets you show that the data is being refreshed in the background.**
 
 **The useIsFetching() hook returns a number indicating the number of queries across the entire app that are refetching.**
+
+
+
+### Prefetching queries
+- Seeing a loading state on a site is pretty commonplace these days. **Users have come to expect a little spinner or skeleton UI while the data fetches in the background.** And many loading states, especially those that show when an app first loads, are mostly unavoidable.
+- **We can take advantage of this behavior to load data into the cache without needing to show a loading indicator at all.**
+
+**Placeholder Data:** </br>
+- When the query function resolves, the placeholder data will be replaced with the real data.
+- You should use **placeholderData whenever you want to provide fake data to a query.** For example, a query could fetch a user's profile, and we could provide a placeholder image for their avatar.
+
+```tsx
+const UserAvatar = () => {
+  const userQuery = useQuery(
+    ["user"],
+    fetchUser,
+    {
+      placeholderData: {
+        avatar_url: "https://placekitten.com/g/200/200",
+      }
+    }
+  )
+
+  return (
+    <img src={userQuery.data.avatar_url} alt="Avatar" />
+  )
+}
+```
+- This gives us something to show the user while the real data loads in the background.
+
+Can you think of a scenario where this could go wrong though? What about with dependent queries?
+- We wouldn't want the **dependent query to be using placeholder data.** To avoid this, we can check the isPlaceholderData property of our query object to see if our data is real or not.
+```tsx
+const userQuery = useQuery(
+  ["user"],
+  fetchUser,
+)
+const userIssues = useQuery(
+  ["userIssues", userQuery.data.login],
+  fetchUserIssues,
+  {
+    enabled: !userQuery.isPlaceholderData 
+      && userQuery.data?.login,
+  }
+)
+```
+
+**Initial Data:**
+- If placeholderData is useful for fake data, initialData is most valuable for real data - that is, **data which is very likely to be similar to the data on the server.**
+
+**Initial Data from Other Queries:**
+- **A common pattern in apps is to have an index page which shows a list of items and then a separate page which shows an item detail.** For example, Github displays a repo's issues in a list and clicking on an issue takes you to a more detailed page. Here's what the query for the index page might look like:
+```tsx
+const issuesListQuery = useQuery(
+  ["issues", repo, owner],
+  fetchIssues
+);
+```
+- And the query for the detail page might look like this:
+```tsx
+const issueDetailQuery = useQuery(
+  ["issue", repo, owner, issueNumber],
+  fetchIssue
+);
+```
+- An interesting thing about the Github Issues API is that the issue list API **includes most of the data about the issues, including the title, body, state, and labels.** This is actually enough data for us to render most of the issues detail page. We just need a way to pull that data out of the cache and use it as our initial data.
+
+**Preemptive Data:**
+- If we know that a **query can provide the initial data for another query**, **we can preemptively put the needed data into the cache when the first query loads.**
+-  Then, when the second query loads, **it will automatically have data from the cache**, without any extra configuration on our part.
+- The best place to call this is inside our query function, after the data has been loaded.
+- React Query will use the moment that **queryClient.setQueryData is called as the timestamp for dataUpdatedAt.**
+
+**Query Prefetching:**
+- Since the **loading is based on user actions,** we can use those **same actions as signals to know what data the user will need soon.**
+- For example, we can watch for **when the user's cursor hovers over a link that will take them to a new page, and prefetch the query that is on the other page.** Or, as an example, **we know from analytics data that when a user visits the /dashboard page, they are most likely to navigate to the /billing page.** Knowing that, we can prefetch the billingQuery so the data is ready when the user navigates.
+- Adding an onMouseEnter event handler will let us prefetch data when the user's cursor rests on the link.
+```tsx
+const Navigation = () => {
+  const queryClient = useQueryClient();
+  return (
+    <>
+      <Link 
+        to="/dashboard"
+        onMouseEnter={() => {
+          queryClient.prefetchQuery(
+            ["dashboard"],
+            fetchDashboard
+          );
+        }}>
+        Dashboard
+      </Link>
+      <Link 
+        to="/billing"
+        onMouseEnter={() => {
+          queryClient.prefetchQuery(
+            ["billing"], 
+            fetchBilling
+          );
+        }}>
+        Billing
+      </Link>
+      <Link 
+        to="/profile"
+        onMouseEnter={() => {
+          queryClient.prefetchQuery(
+            ["user"], 
+            fetchUser
+          );
+        }}>
+        Profile
+      </Link>
+      <Link to="/settings">Settings</Link>
+      <Link to="/logout">Logout</Link>
+  </>
+  )
+}
+```
+Hopefully, this helps those pages load just a little bit faster, since the query will have a bit more time to load. And it also respects the state of the data already in the cache. **If we try to prefetch data that is fresh in the cache, React Query will just ignore the prefetch request.**
+
+
+Let's also look at how the page-based query prefetching might work. For this, we'll call **queryClient.prefetchQuery in a useEffect hook to prefetch the data for the /billing page.**
+```tsx
+const Dashboard = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.prefetchQuery(["billing"], fetchBilling);
+  }, [])
+  
+  // ...
+}
+```
+- There are a few things to beware here. First, this technique only works if we have all of the variables that the query depends on. The examples I use above use string constants as the query key, but it might be tricker to prefetch if we have to use several variables in our query key or query function.
+- **Also, this couples the queries to the places where those queries are prefetched. Any changes to either the query key or query function have to be made in both places.**
+- The best way to avoid this problem is to define **your query function separately from where it is used and then import it both where the query data is prefetched and the page where the data is actually used.** You can even write a function called a "query key factory" which takes parameters and provides you with the correct query key.
+
+
+
+
+
 
 
 
