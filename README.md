@@ -16,6 +16,7 @@
   - [Query Cancellation](#query-cancellation)
   - [Fetching States](#fetching-states)
   - [Prefetching queries](#prefetching-queries)
+  - [Mutations](#mutations)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -407,6 +408,29 @@ const Dashboard = () => {
 - There are a few things to beware here. First, this technique only works if we have all of the variables that the query depends on. The examples I use above use string constants as the query key, but it might be tricker to prefetch if we have to use several variables in our query key or query function.
 - **Also, this couples the queries to the places where those queries are prefetched. Any changes to either the query key or query function have to be made in both places.**
 - The best way to avoid this problem is to define **your query function separately from where it is used and then import it both where the query data is prefetched and the page where the data is actually used.** You can even write a function called a "query key factory" which takes parameters and provides you with the correct query key.
+
+
+### Mutations
+- the useMutation hook lets you manage the state of mutations sent to the server. This hook allows you to perform mutations on your server state by triggering side effects.
+- A mutation is any function that causes a side effect - most commonly changing the state of some data outside of the function.
+- And, by definition, **any HTTP call to a server that changes state is considered a side effect.** That HTTP call mutated the state on the server, which means future responses from the server might have different results.
+
+**useMutation vs useQuery:**
+- **The first and most obvious difference is the mutate method, which is what you call to fire off the mutation.** You see, useQuery runs declaratively. As soon as the component mounts, it fetches the data. But we don't want that to happen for mutations.
+- Sending the mutation by calling a function makes it really handy for **use in event handlers or useEffect calls.**
+-  When the isSuccess state is truthy, **we display the updated name that was returned by the mutation response.** Of course, **the user likely doesn't want to see this state forever.** It's mostly there to serve as an indication that the mutation was a success. **Eventually, we would want to reset the mutation and clear the data that was returned.**
+
+**Mutation Resets:**
+- To help us reset the mutation state, the object returned by useMutation includes a reset method. **Calling this will clear out the state of our mutation and set it back to its initial state.**
+- To start the timer, we'll take advantage of the mutations lifecycle methods, which are the same that useQuery has: **onSuccess, onError, and onSettled. There is one addition which is called before the mutation function is fired: onMutate**
+- The second difference between useMutation and useQuery is in the parameters - **you don't have to pass a query mutation key, just the mutation function.** This implies another difference - **mutation results aren't cached like query results are.** If you make a mutation in one component, you won't be able to access the response data in another component without sending it some other way.
+- React Query makes no assumptions about what your data returns, **which means you are responsible for making sure queries are updated when the mutation response comes back. **
+
+**Direct Cache Updates:**
+- **Depending on the return value of your API, you might be able to directly update the cache entry for any queries that would be changed by your mutation.**
+- We can once again use the onSuccess callback along with queryClient.setQueryData to do this.
+- This is a simple and fast option, but any time we're manually updating the cache, we run the risk of introducing bad data.
+- **The more cautious and resilient approach would be to invalidate the queries that were affected by the mutation and have them refetch.**
 
 
 
