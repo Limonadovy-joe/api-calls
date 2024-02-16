@@ -17,6 +17,7 @@
   - [Fetching States](#fetching-states)
   - [Prefetching queries](#prefetching-queries)
   - [Mutations](#mutations)
+  - [Optimistic Updates](#optimistic-updates)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -432,6 +433,14 @@ const Dashboard = () => {
 - This is a simple and fast option, but any time we're manually updating the cache, we run the risk of introducing bad data.
 - **The more cautious and resilient approach would be to invalidate the queries that were affected by the mutation and have them refetch.**
 
+
+
+
+### Optimistic Updates
+- Users want snappy UIs, and that's a problem when making mutations. If we have enough data and **can guess what the server response will be, we can update our cache (and our UI at the same time) with fake data while the server is still working.** Then, **when the server responds, we can update the cache with the real data. We call this technique "Optimistic Updates"**
+- Let's create a mutation to add a comment to a Github issue, with an optimistic update that adds a record to the cache immediately .
+- **Our mutation now updates the queries as with real data as quickly as they can**, but with optimistic updates we can update the UI even faster with fake data.
+- There's another problem with this. What happens if the mutation fails? **That would leave our fake comment in the cache, even though it doesn't exist on the server.** We'll address both of these problems by creating a **rollback, which lets us restore the cache to its pre-mutation state.**
 
 
 
