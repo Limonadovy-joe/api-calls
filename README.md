@@ -18,6 +18,7 @@
   - [Prefetching queries](#prefetching-queries)
   - [Mutations](#mutations)
   - [Optimistic Updates](#optimistic-updates)
+  - [Paginated Queries](#paginated-queries)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -442,11 +443,28 @@ const Dashboard = () => {
 - **Our mutation now updates the queries as with real data as quickly as they can**, but with optimistic updates we can update the UI even faster with fake data.
 - There's another problem with this. What happens if the mutation fails? **That would leave our fake comment in the cache, even though it doesn't exist on the server.** We'll address both of these problems by creating a **rollback, which lets us restore the cache to its pre-mutation state.**
 
+### Paginated Queries
+- Other APIs might give you access to thousands of records, each with kilobytes of data. A single issue record from the Github API is 3kb all on its own, and some repos like facebook/react have over 10,000 issues. That's a lot of data to return in a single request.
+- That's why it's common for APIs to break up the data into multiple pages. Clients are expected to request data a page at a time, making additional requests when they want to get another page.
+
+- Except you might notice a small issue - whenever you click a button to change the page, the current page's data will disappear and be replaced by the loading state.
+- What we really need is some way to keep the current page's data around while the next page is loading. React Query lets us enable this ability with the **keepPreviousData option.**
+- Use **isPreviousData** any time you need to check to see if you are working with the latest data that matches your query or if React Query is showing you data from a previous query.
+
+**Prefetching Pagination Queries:**
+- If you were paying attention earlier in the course, you might already know one way we can improve this experience. If there's a next page, it's very likely the user will want to navigate to it. We can prefetch the next page automatically, which will load it into the cache and make the transition instant when the user clicks the "Next" button.
 
 
 
 
 
+
+
+
+**Page Numbers vs Page Cursors:**
+-  On the backend, this works by jumping to the perPage * (page - 1) record, and sending us the next perPage number of records. We call the number of the first record on the page the "offset". So for page 1 with a page count of 10, it starts at the first record and gives us 10 records. For page 4, it starts at record 31 and gives the next 10 records.
+- Using an API with cursors, the first request doesn't have any cursor, and the server sends back the first page of results along with the cursor for the next page. When the user wants to go to the next page, they send the cursor they got with the previous request, which returns that page and another cursor, as long as there are more records.
+- Using cursors is a little bit more difficult to implement, since you have to store the previous cursors in state to use the previous button. But React Query works just as well with cursors as it does with page offsets.
 
 
 
