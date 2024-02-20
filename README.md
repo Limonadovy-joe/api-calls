@@ -19,6 +19,7 @@
   - [Mutations](#mutations)
   - [Optimistic Updates](#optimistic-updates)
   - [Paginated Queries](#paginated-queries)
+  - [Infinite queries](#infinite-queries)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -465,6 +466,16 @@ const Dashboard = () => {
 -  On the backend, this works by jumping to the perPage * (page - 1) record, and sending us the next perPage number of records. We call the number of the first record on the page the "offset". So for page 1 with a page count of 10, it starts at the first record and gives us 10 records. For page 4, it starts at record 31 and gives the next 10 records.
 - Using an API with cursors, the first request doesn't have any cursor, and the server sends back the first page of results along with the cursor for the next page. When the user wants to go to the next page, they send the cursor they got with the previous request, which returns that page and another cursor, as long as there are more records.
 - Using cursors is a little bit more difficult to implement, since you have to store the previous cursors in state to use the previous button. But React Query works just as well with cursors as it does with page offsets.
+
+
+### Infinite queries
+- We can easily create paginated queries with React Query by including the page number in our query key and changing that value when the user goes to the next or previous page. This makes sense when we have a few pages of data that the user wants to page back and forth through.
+- Another common pattern these days, popularized by Facebook, Pinterest, and Instagram, is to treat the data as an **infinite page**, **where new data either loads as the user scrolls to the bottom or is loaded when the user clicks a "Show More" button.** The data is no longer displayed as discrete pages; instead, it's one infinite page of data and components that extends forever, or at least until there is data to load.
+
+
+
+
+
 
 
 
