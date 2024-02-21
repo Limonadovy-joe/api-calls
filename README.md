@@ -20,6 +20,9 @@
   - [Optimistic Updates](#optimistic-updates)
   - [Paginated Queries](#paginated-queries)
   - [Infinite queries](#infinite-queries)
+  - [Realtime updates with websockets](#realtime-updates-with-websockets)
+  - [Suspense Mode](#suspense-mode)
+  - [Render Optimization](#render-optimization)
 
 ## Axios
 Since launching this course, we've changed where the React Query package is located. Before, it was under the react-query package. Now, it's under the @tanstack/react-query package.
@@ -474,9 +477,70 @@ const Dashboard = () => {
 
 
 
+### Realtime updates with websockets
+- What are the benefits of using Websockets with React Query?
+  - **notifications about updates to data can be sent directly to the client instead of needing to poll**
+- Why is it important to set a **staleTime** on any queries that are updated with Websockets?
+  - **The websocket will update or invalidate the query anyway, so React Query automatic refetches are redudant**
+
+
+### Suspense Mode
+- **Suspense is React's way of coordinating loading states for asynchronous operations**, and it's commonly used with components that fetch data or lazy load with React.lazy. React Query has built-in support for Suspense by adding a configuration option to useQuery.
+- **We wrap our data loading components in a Suspense component and add the {suspense: true} configuration option to useQuery.** Then, when useQuery is loading, **the hook sends a signal to React that suspends that component. React will stop rendering the component and the nearest parent Suspense component will render a fallback component until the data is available.**
+
+
+**Parallel Queries:**
+```tsx
+const UserAndGists = ({userId}) => {
+  const userQuery = useQuery(
+    ["user", userId],
+    () => fetchUser(userId),
+    {suspense: true}
+  );
+  const gistsQuery = useQuery(
+    ["gists", userId],
+    () => fetchGists(userId),
+    {suspense: true}
+  );
+
+  return (
+    <div>
+      {/* render the data ... */}
+    </div>
+  );
+}
+```
+- It might be hard notice from here, but if you were watch the React Query Devtools as this component mounted, you would see that the ["user", userId] query would appear first, but the ["gists", userId] query wouldn't appear until after the ["user", userId] query had loaded.
+- **In other words, using Suspense mode makes these queries run in series, and you have to wait for both to load before the component finally loads.** Sometimes this is what you want, but often you want to run these queries in parallel.
+- We already saw the first solution above: put both queries into separate components and wrap both of them in <Suspense>. This is the recommended solution for any apps that use Suspense, since Suspense leans so heavily on React component composition.
 
 
 
+### Render Optimization
+- Decreasing Render Count
+```tsx
+async function fetchId() {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return {
+    id: "static ID",
+    number: Math.random()
+  }
+}
+
+const DisplayId = () => {
+  const idQuery = useQuery(
+    ["id"],
+    fetchId,
+    {
+      refetchInterval: 1000,
+    });
+
+  return <div>ID: {idQuery.data?.id}</div>
+}
+```
+- **React Query automatically tracks the properties on the query object that you use in the component. Since we aren't using the isFetching property, React Query isn't triggering a render when that changes.**
+- To help us address this, **React Query gives us the select option.** This lets us pass a function to our query which takes the data returned by the query and **lets us transform it before we use it in the component.** React Query will do a deep equals check to see if what we return from the select function matches the previous data. If it does, React Query will not re-render the component.
 
 
+ 
 
